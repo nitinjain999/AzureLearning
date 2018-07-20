@@ -1,0 +1,44 @@
+
+export resourceGroup="enjnjnj-70533-rg"
+export location="northeurope"
+export vmssname="enjnjnj-70533-vmss"
+
+Step 1 #### Create Resource Group ####
+#### 
+az group create --name $resourceGroup  --location $location
+
+Step 2 #### Create VM Scale Set and using existing ssh keys####
+####
+
+az vmss create --resource-group $resourceGroup --name $vmssname --image UbuntuLTS --upgrade-policy-mode automatic --admin-username enjnjnj --ssh-key-value .ssh/id_rsa.pub 
+ 
+Step 3 ##### Deploy Sample Application #####
+
+az vmss extension set --publisher Microsoft.Azure.Extensions --version 2.0 --name CustomScript --resource-group $resourceGroup --vmss-name $vmssname --settings '{"fileUris":["https://raw.githubusercontent.com/nitinjain999/AzureLearning/master/vmss/nginxtest.sh"],"commandToExecute":"./nginxtest.sh"}'
+
+
+Step 4 ##### Allow Traffic to Application #######
+
+Create a Rule Name : enjnjnj-LoadBalancerRuleWeb
+
+az network lb rule create \
+  --resource-group $resourceGroup \
+  --name enjnjnj-LoadBalancerRuleWeb \
+  --lb-name enjnjnj-70533-vmssLB \
+  --backend-pool-name enjnjnj-70533-vmssLBBEPool \
+  --backend-port 80 \
+  --frontend-ip-name loadBalancerFrontEnd \
+  --frontend-port 80 \
+  --protocol tcp
+
+
+Step 5 ##### Test your Scale Set #####
+
+  az network public-ip show \
+  --resource-group $resourceGroup \
+  --name enjnjnj-70533-vmssLBPublicIP \
+  --query '[ipAddress]' \
+  --output tsv
+
+Step 6 ##### Clean all resources ####
+az group delete --name $resourceGroup --yes --no-wait
