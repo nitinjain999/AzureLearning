@@ -1,0 +1,42 @@
+Azure Container Registry is a private registry for hosting container images. Using the Azure Container Registry, you can store Docker-formatted images for all types of container deployments. Azure Container Registry integrates well with orchestrators hosted in Azure Container Service, including Docker Swarm, DC/OS, and Kubernetes. Users can benefit from using familiar tooling capable of working with the open source Docker Registry v2.
+
+Use Azure Container Registry to:
+
+Store and manage container images across all types of Azure deployments
+Use familiar, open-source Docker command line interface (CLI) tools
+Keep container images near deployments to reduce latency and costs
+Simplify registry access management with Azure Active Directory
+Maintain Windows and Linux container images in a single Docker registry
+
+export resourceGroup="enjnjnj-70533-rg"
+export acrName="enjnjnjacr"
+
+# Create Container Reg. with Defined name , with admin enabled & tier Basic
+
+az acr create --resource-group $resourceGroup --name $acrName --sku Basic --admin-enabled true
+
+# List Container Reg in particular resource group
+
+az acr list --resource-group $resourceGroup --output table
+
+az acr list --resource-group $resourceGroup --query "[].{acrLoginServer:loginServer}"
+
+az acr credential show --resource-group $resourceGroup -n $acrName
+
+az acr credential show --resource-group $resourceGroup -n $acrName --query username
+
+### export acrUserName=$(az acr credential show --resource-group $resourceGroup -n $acrName --query username)
+
+az acr credential show --resource-group $resourceGroup -n $acrName --query passwords[0].value
+
+### export acrPassword=$(az acr credential show --resource-group $resourceGroup -n $acrName --query passwords[0].value)
+
+az acr credential show --resource-group $resourceGroup -n $acrName --query passwords[1].value
+
+az acr login --name $acrName --username $acrUserName --password $acrPassword --resource-group $resourceGroup
+
+
+
+az acr repository list --name $acrName --output table
+
+az acr repository show-tags --name $acrName --repository golang --output table
